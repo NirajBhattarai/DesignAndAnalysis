@@ -411,7 +411,7 @@ Current: execut → execut
 #### Step 5: dp[5][5] ('n'-'u') - Insert ←
 |i\j |   |   | e | x | e | c | u | t | i | o | n |
 |----|---|---|---|---|---|---|---|---|---|---|---|
-|i=5 | n | 5 | 4 | 4 | 4 | 4 |[5]| 6 | 7 | 8 | 8 |
+|i=5 | n | 5 | 4 | 4 | 4 |[4]| 5 | 6 | 7 | 8 | 8 |
 Operation: Insert 'u'
 Current: execu → execu
 
@@ -456,4 +456,461 @@ ntention → etention (replace 'n' with 'e')
 etention → exention (replace 't' with 'x')
 exention → exection (replace 'n' with 'c')
 exection → execution (insert 'u')
+
+# Matrix Chain Multiplication
+
+## Problem Definition
+Matrix Chain Multiplication is an optimization problem that determines the most efficient way to multiply a sequence of matrices. The goal is to minimize the total number of scalar multiplications.
+
+## Formula and Rules
+1. Base Case: M[i,i] = 0 (single matrix requires no multiplication)
+2. Recursive Formula: M[i,j] = min { M[i,k] + M[k+1,j] + (rows(i) × cols(k) × cols(j)) }
+   where k varies from i to j-1
+
+### Important Rules:
+1. For matrices to be multiplicable, cols(first) must equal rows(second)
+2. Result matrix dimensions: rows(first) × cols(second)
+3. Cost of multiplying (p×q) and (q×r) matrices = p×q×r scalar multiplications
+
+## Example with 7 Matrices
+Consider matrices A₁, A₂, A₃, A₄, A₅, A₆, A₇ with dimensions:
+- A₁: 35 × 15
+- A₂: 15 × 25
+- A₃: 25 × 30
+- A₄: 30 × 40
+- A₅: 40 × 20
+- A₆: 20 × 35
+- A₇: 35 × 45
+
+## Step-by-Step Solution
+
+### Step 1: Initialize (Length = 1)
+Initialize diagonal with zeros (no cost for single matrix)
+
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | - | - | - | - | - | - |
+| 2 | - | 0 | - | - | - | - | - |
+| 3 | - | - | 0 | - | - | - | - |
+| 4 | - | - | - | 0 | - | - | - |
+| 5 | - | - | - | - | 0 | - | - |
+| 6 | - | - | - | - | - | 0 | - |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 2: Length = 2 (Adjacent Pairs)
+Apply formula for k = i:
+M[i,j] = M[i,i] + M[i+1,j] + (rows(i) × cols(i) × cols(j))
+
+1. C[1,2] = A₁ × A₂
+   - M[1,1] + M[2,2] + (35 × 15 × 25)
+   - 0 + 0 + 13,125 = 13,125
+
+2. C[2,3] = A₂ × A₃
+   - M[2,2] + M[3,3] + (15 × 25 × 30)
+   - 0 + 0 + 18,750 = 18,750
+
+3. C[3,4] = A₃ × A₄
+   - M[3,3] + M[4,4] + (25 × 30 × 40)
+   - 0 + 0 + 30,000 = 30,000
+
+4. C[4,5] = A₄ × A₅
+   - M[4,4] + M[5,5] + (30 × 40 × 20)
+   - 0 + 0 + 24,000 = 24,000
+
+5. C[5,6] = A₅ × A₆
+   - M[5,5] + M[6,6] + (40 × 20 × 35)
+   - 0 + 0 + 28,000 = 28,000
+
+6. C[6,7] = A₆ × A₇
+   - M[6,6] + M[7,7] + (20 × 35 × 45)
+   - 0 + 0 + 31,500 = 31,500
+
+Resulting table after length 2:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | - | - | - | - | - |
+| 2 | - | 0 | 19 | - | - | - | - |
+| 3 | - | - | 0 | 30 | - | - | - |
+| 4 | - | - | - | 0 | 24 | - | - |
+| 5 | - | - | - | - | 0 | 28 | - |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 3: Length = 3 (Three Matrices)
+Apply formula with k varying from i to j-1
+
+1. C[1,3] calculation:
+   For k = 1: (Split: (A₁)(A₂A₃))
+   - M[1,1] + M[2,3] + (35 × 15 × 30)
+   - 0 + 18,750 + 15,750 = 34,500
+
+   For k = 2: (Split: (A₁A₂)(A₃))
+   - M[1,2] + M[3,3] + (35 × 25 × 30)
+   - 13,125 + 0 + 26,250 = 22,375 ← Minimum
+
+2. C[2,4] calculation:
+   For k = 2: (Split: (A₂)(A₃A₄))
+   - M[2,2] + M[3,4] + (15 × 25 × 40)
+   - 0 + 30,000 + 15,000 = 45,000
+
+   For k = 3: (Split: (A₂A₃)(A₄))
+   - M[2,3] + M[4,4] + (15 × 30 × 40)
+   - 18,750 + 0 + 18,000 = 36,750 ← Minimum
+
+3. C[3,5] calculation:
+   For k = 3: (Split: (A₃)(A₄A₅))
+   - M[3,3] + M[4,5] + (25 × 30 × 20)
+   - 0 + 24,000 + 15,000 = 39,000
+
+   For k = 4: (Split: (A₃A₄)(A₅))
+   - M[3,4] + M[5,5] + (25 × 40 × 20)
+   - 30,000 + 0 + 20,000 = 50,000
+
+4. C[4,6] calculation:
+   For k = 4: (Split: (A₄)(A₅A₆))
+   - M[4,4] + M[5,6] + (30 × 40 × 35)
+   - 0 + 28,000 + 42,000 = 70,000
+
+   For k = 5: (Split: (A₄A₅)(A₆))
+   - M[4,5] + M[6,6] + (30 × 20 × 35)
+   - 24,000 + 0 + 21,000 = 45,000 ← Minimum
+
+5. C[5,7] calculation:
+   For k = 5: (Split: (A₅)(A₆A₇))
+   - M[5,5] + M[6,7] + (40 × 20 × 45)
+   - 0 + 31,500 + 36,000 = 67,500
+
+   For k = 6: (Split: (A₅A₆)(A₇))
+   - M[5,6] + M[7,7] + (40 × 35 × 45)
+   - 28,000 + 0 + 63,000 = 91,000
+
+Resulting table after length 3:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | 22 | - | - | - | - |
+| 2 | - | 0 | 19 | 37 | - | - | - |
+| 3 | - | - | 0 | 30 | 39 | - | - |
+| 4 | - | - | - | 0 | 24 | 45 | - |
+| 5 | - | - | - | - | 0 | 28 | 68 |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 4: Length = 4 (Four Matrices)
+Apply formula with k varying from i to j-1
+
+1. C[1,4] calculation:
+   For k = 1: (Split: (A₁)(A₂A₃A₄))
+   - M[1,1] + M[2,4] + (35 × 15 × 40)
+   - 0 + 36,750 + 21,000 = 57,750
+
+   For k = 2: (Split: (A₁A₂)(A₃A₄))
+   - M[1,2] + M[3,4] + (35 × 25 × 40)
+   - 13,125 + 30,000 + 35,000 = 78,125
+
+   For k = 3: (Split: (A₁A₂A₃)(A₄))
+   - M[1,3] + M[4,4] + (35 × 30 × 40)
+   - 22,375 + 0 + 42,000 = 64,375 ← Minimum
+
+2. C[2,5] calculation:
+   For k = 2: (Split: (A₂)(A₃A₄A₅))
+   - M[2,2] + M[3,5] + (15 × 25 × 20)
+   - 0 + 39,000 + 7,500 = 46,500 ← Minimum
+
+   For k = 3: (Split: (A₂A₃)(A₄A₅))
+   - M[2,3] + M[4,5] + (15 × 30 × 20)
+   - 18,750 + 24,000 + 9,000 = 51,750
+
+   For k = 4: (Split: (A₂A₃A₄)(A₅))
+   - M[2,4] + M[5,5] + (15 × 40 × 20)
+   - 36,750 + 0 + 12,000 = 48,750
+
+3. C[3,6] calculation:
+   For k = 3: (Split: (A₃)(A₄A₅A₆))
+   - M[3,3] + M[4,6] + (25 × 30 × 35)
+   - 0 + 45,000 + 26,250 = 71,250
+
+   For k = 4: (Split: (A₃A₄)(A₅A₆))
+   - M[3,4] + M[5,6] + (25 × 40 × 35)
+   - 30,000 + 28,000 + 35,000 = 93,000
+
+   For k = 5: (Split: (A₃A₄A₅)(A₆))
+   - M[3,5] + M[6,6] + (25 × 20 × 35)
+   - 39,000 + 0 + 17,500 = 56,500 ← Minimum
+
+4. C[4,7] calculation:
+   For k = 4: (Split: (A₄)(A₅A₆A₇))
+   - M[4,4] + M[5,7] + (30 × 40 × 45)
+   - 0 + 67,500 + 54,000 = 121,500
+
+   For k = 5: (Split: (A₄A₅)(A₆A₇))
+   - M[4,5] + M[6,7] + (30 × 20 × 45)
+   - 24,000 + 31,500 + 27,000 = 82,500 ← Minimum
+
+   For k = 6: (Split: (A₄A₅A₆)(A₇))
+   - M[4,6] + M[7,7] + (30 × 35 × 45)
+   - 45,000 + 0 + 47,250 = 92,250
+
+Resulting table after length 4:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | 22 | 64 | - | - | - |
+| 2 | - | 0 | 19 | 37 | 47 | - | - |
+| 3 | - | - | 0 | 30 | 39 | 57 | - |
+| 4 | - | - | - | 0 | 24 | 45 | 83 |
+| 5 | - | - | - | - | 0 | 28 | 68 |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 5: Length = 5 (Five Matrices)
+
+1. C[1,5] calculation:
+   For k = 1: (Split: (A₁)(A₂A₃A₄A₅))
+   - M[1,1] + M[2,5] + (35 × 15 × 20)
+   - 0 + 46,500 + 10,500 = 57,000 ← Minimum
+
+   For k = 2: (Split: (A₁A₂)(A₃A₄A₅))
+   - M[1,2] + M[3,5] + (35 × 25 × 20)
+   - 13,125 + 39,000 + 17,500 = 69,625
+
+   For k = 3: (Split: (A₁A₂A₃)(A₄A₅))
+   - M[1,3] + M[4,5] + (35 × 30 × 20)
+   - 22,375 + 24,000 + 21,000 = 67,375
+
+   For k = 4: (Split: (A₁A₂A₃A₄)(A₅))
+   - M[1,4] + M[5,5] + (35 × 40 × 20)
+   - 64,375 + 0 + 28,000 = 92,375
+
+
+2. C[2,6] calculation:
+   For k = 2: (Split: (A₂)(A₃A₄A₅A₆))
+   - M[2,2] + M[3,6] + (15 × 25 × 35)
+   - 0 + 56,500 + 13,125 = 69,625
+
+   For k = 3: (Split: (A₂A₃)(A₄A₅A₆))
+   - M[2,3] + M[4,6] + (15 × 30 × 35)
+   - 18,750 + 45,000 + 15,750 = 79,500
+
+   For k = 4: (Split: (A₂A₃A₄)(A₅A₆))
+   - M[2,4] + M[5,6] + (15 × 40 × 35)
+   - 36,750 + 28,000 + 21,000 = 85,750
+
+   For k = 5: (Split: (A₂A₃A₄A₅)(A₆))
+   - M[2,5] + M[6,6] + (15 × 20 × 35)
+   - 46,500 + 0 + 10,500 = 57,000 ← Minimum
+
+3. C[3,7] calculation:
+   For k = 3: (Split: (A₃)(A₄A₅A₆A₇))
+   - M[3,3] + M[4,7] + (25 × 30 × 45)
+   - 0 + 82,500 + 33,750 = 116,250
+
+   For k = 4: (Split: (A₃A₄)(A₅A₆A₇))
+   - M[3,4] + M[5,7] + (25 × 40 × 45)
+   - 30,000 + 67,500 + 45,000 = 142,500
+
+   For k = 5: (Split: (A₃A₄A₅)(A₆A₇))
+   - M[3,5] + M[6,7] + (25 × 20 × 45)
+   - 39,000 + 31,500 + 22,500 = 93,000 ← Minimum
+
+   For k = 6: (Split: (A₃A₄A₅A₆)(A₇))
+   - M[3,6] + M[7,7] + (25 × 35 × 45)
+   - 56,500 + 0 + 39,375 = 95,875
+
+Resulting table after length 5:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | 22 | 64 | 57 | - | - |
+| 2 | - | 0 | 19 | 37 | 47 | 57 | - |
+| 3 | - | - | 0 | 30 | 39 | 57 | 93 |
+| 4 | - | - | - | 0 | 24 | 45 | 83 |
+| 5 | - | - | - | - | 0 | 28 | 68 |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 6: Length = 6 (Six Matrices)
+
+1. C[1,6] calculation:
+   For k = 1: (Split: (A₁)(A₂A₃A₄A₅A₆))
+   - M[1,1] + M[2,6] + (35 × 15 × 35)
+   - 0 + 57,000 + 18,375 = 75,375
+
+   For k = 2: (Split: (A₁A₂)(A₃A₄A₅A₆))
+   - M[1,2] + M[3,6] + (35 × 25 × 35)
+   - 13,125 + 57,000 + 30,625 = 100,750
+
+   For k = 3: (Split: (A₁A₂A₃)(A₄A₅A₆))
+   - M[1,3] + M[4,6] + (35 × 30 × 35)
+   - 22,375 + 45,000 + 36,750 = 104,125
+
+   For k = 4: (Split: (A₁A₂A₃A₄)(A₅A₆))
+   - M[1,4] + M[5,6] + (35 × 40 × 35)
+   - 64,375 + 28,000 + 49,000 = 141,375
+
+   For k = 5: (Split: (A₁A₂A₃A₄A₅)(A₆))
+   - M[1,5] + M[6,6] + (35 × 20 × 35)
+   - 57,000 + 0 + 24,500 = 81,500
+
+2. C[2,7] calculation:
+   For k = 2: (Split: (A₂)(A₃A₄A₅A₆A₇))
+   - M[2,2] + M[3,7] + (15 × 25 × 45)
+   - 0 + 93,000 + 16,875 = 109,875
+
+   For k = 3: (Split: (A₂A₃)(A₄A₅A₆A₇))
+   - M[2,3] + M[4,7] + (15 × 30 × 45)
+   - 18,750 + 82,500 + 20,250 = 121,500
+
+   For k = 4: (Split: (A₂A₃A₄)(A₅A₆A₇))
+   - M[2,4] + M[5,7] + (15 × 40 × 45)
+   - 36,750 + 67,500 + 27,000 = 131,250
+
+   For k = 5: (Split: (A₂A₃A₄A₅)(A₆A₇))
+   - M[2,5] + M[6,7] + (15 × 20 × 45)
+   - 46,500 + 31,500 + 13,500 = 91,500 ← Minimum
+
+   For k = 6: (Split: (A₂A₃A₄A₅A₆)(A₇))
+   - M[2,6] + M[7,7] + (15 × 35 × 45)
+   - 57,000 + 0 + 23,625 = 80,625
+
+Table after length 6:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | 22 | 64 | 57 | 75 | - |
+| 2 | - | 0 | 19 | 37 | 47 | 57 | 80 |
+| 3 | - | - | 0 | 30 | 39 | 57 | 93 |
+| 4 | - | - | - | 0 | 24 | 45 | 83 |
+| 5 | - | - | - | - | 0 | 28 | 68 |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Step 7: Final Length = 7 (All Matrices)
+
+C[1,7] calculation:
+For k = 1: (Split: (A₁)(A₂A₃A₄A₅A₆A₇))
+- M[1,1] + M[2,7] + (35 × 15 × 45)
+- 0 + 80,625 + 23,625 = 104,250 ← Minimum
+
+For k = 2: (Split: (A₁A₂)(A₃A₄A₅A₆A₇))
+- M[1,2] + M[3,7] + (35 × 25 × 45)
+- 13,125 + 93,000 + 39,375 = 145,500
+
+For k = 3: (Split: (A₁A₂A₃)(A₄A₅A₆A₇))
+- M[1,3] + M[4,7] + (35 × 30 × 45)
+- 22,375 + 82,500 + 47,250 = 152,125
+
+For k = 4: (Split: (A₁A₂A₃A₄)(A₅A₆A₇))
+- M[1,4] + M[5,7] + (35 × 40 × 45)
+- 64,375 + 67,500 + 63,000 = 194,875
+
+For k = 5: (Split: (A₁A₂A₃A₄A₅)(A₆A₇))
+- M[1,5] + M[6,7] + (35 × 20 × 45)
+- 57,000 + 31,500 + 31,500 = 120,000
+
+For k = 6: (Split: (A₁A₂A₃A₄A₅A₆)(A₇))
+- M[1,6] + M[7,7] + (35 × 35 × 45)
+- 75,375 + 0 + 55,125 = 130,500
+
+Final Complete Table:
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | 0 | 13 | 22 | 64 | 57 | 75 | 104 |
+| 2 | - | 0 | 19 | 37 | 47 | 57 | 80 |
+| 3 | - | - | 0 | 30 | 39 | 57 | 93 |
+| 4 | - | - | - | 0 | 24 | 45 | 83 |
+| 5 | - | - | - | - | 0 | 28 | 68 |
+| 6 | - | - | - | - | - | 0 | 32 |
+| 7 | - | - | - | - | - | - | 0 |
+
+### Final Result
+- Optimal number of multiplications: 104,250
+- Optimal parenthesization: (A₁)(A₂A₃A₄A₅A₆A₇)
+
+### Breaking Down the Optimal Parenthesization Using K Table
+
+The K table shows where to split matrices for optimal multiplication. Let's trace it step by step:
+
+| i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|-----|---|---|---|---|---|---|---|
+| 1 | - | 1 | 2 | 3 | 1 | 1 | 1 |
+| 2 | - | - | 2 | 3 | 2 | 5 | 6 |
+| 3 | - | - | - | 3 | 3 | 5 | 5 |
+| 4 | - | - | - | - | 4 | 5 | 5 |
+| 5 | - | - | - | - | - | 5 | 6 |
+| 6 | - | - | - | - | - | - | 6 |
+| 7 | - | - | - | - | - | - | - |
+
+#### Step-by-Step Breakdown:
+
+1. Start at K[1,7] = 1
+   - Split between A₁ and (A₂A₃A₄A₅A₆A₇)
+   - Result: (A₁)(A₂A₃A₄A₅A₆A₇)
+
+2. Look at right part K[2,7] = 6
+   - Split (A₂A₃A₄A₅A₆A₇) between A₂A₃A₄A₅A₆ and A₇
+   - Result: (A₁)((A₂A₃A₄A₅A₆)(A₇))
+
+3. Look at K[2,6] = 5
+   - Split A₂A₃A₄A₅A₆ between A₂A₃A₄A₅ and A₆
+   - Result: (A₁)((A₂A₃A₄A₅)(A₆)(A₇))
+
+4. Look at K[2,5] = 2
+   - Split A₂A₃A₄A₅ between A₂ and A₃A₄A₅
+   - Result: (A₁)(((A₂)(A₃A₄A₅))(A₆)(A₇))
+
+5. Look at K[3,5] = 3
+   - Split A₃A₄A₅ between A₃ and A₄A₅
+   - Final: (A₁)(((A₂)((A₃)(A₄A₅)))(A₆)(A₇))
+
+#### Verification of Each Split:
+1. First split (k=1): Cost = 104,250
+   - Left: A₁ (35×15)
+   - Right: A₂A₃A₄A₅A₆A₇ (15×45)
+   - Multiplication cost: 35 × 15 × 45 = 23,625
+   - Total cost: 0 + 80,625 + 23,625 = 104,250
+
+2. Second split (k=6): Cost = 80,625
+   - Left: A₂A₃A₄A₅A₆ (15×35)
+   - Right: A₇ (35×45)
+   - Multiplication cost: 15 × 35 × 45 = 23,625
+   - Total cost: 57,000 + 0 + 23,625 = 80,625
+
+3. Third split (k=5): Cost = 57,000
+   - Left: A₂A₃A₄A₅ (15×20)
+   - Right: A₆ (20×35)
+   - Multiplication cost: 15 × 20 × 35 = 10,500
+   - Total cost: 46,500 + 0 + 10,500 = 57,000
+
+4. Fourth split (k=2): Cost = 46,500
+   - Left: A₂ (15×25)
+   - Right: A₃A₄A₅ (25×20)
+   - Multiplication cost: 15 × 25 × 20 = 7,500
+   - Total cost: 0 + 39,000 + 7,500 = 46,500
+
+5. Final split (k=3): Cost = 39,000
+   - Left: A₃ (25×30)
+   - Right: A₄A₅ (30×20)
+   - Multiplication cost: 25 × 30 × 20 = 15,000
+   - Total cost: 0 + 24,000 + 15,000 = 39,000
+
+The complete multiplication sequence:
+1. First multiply A₄×A₅ = (30×40)×(40×20) = Cost: 24,000
+2. Then A₃×(A₄A₅) = (25×30)×(30×20) = Cost: 15,000
+3. Then A₂×(A₃(A₄A₅)) = (15×25)×(25×20) = Cost: 7,500
+4. Then (A₂(A₃(A₄A₅)))×A₆ = (15×20)×(20×35) = Cost: 10,500
+5. Then ((A₂(A₃(A₄A₅)))A₆)×A₇ = (15×35)×(35×45) = Cost: 23,625
+6. Finally A₁×((A₂(A₃(A₄A₅)))A₆A₇) = (35×15)×(15×45) = Cost: 23,625
+
+Total Cost = 24,000 + 15,000 + 7,500 + 10,500 + 23,625 + 23,625 = 104,250
+
+This verifies that our parenthesization achieves the minimum number of scalar multiplications.
+
+## Time and Space Complexity
+- Space Complexity: O(n²) for storing the DP table
+- Time Complexity: O(n³) where n is the number of matrices
+  - O(n²) subproblems
+  - O(n) choices for each subproblem
+
+## Applications
+1. Expression parsing
+2. Chain of database operations
+3. Optimization of tensor operations in deep learning
+4. Parallel processing of matrix chains
 
