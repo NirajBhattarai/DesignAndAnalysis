@@ -1483,3 +1483,227 @@ int main() {
     return 0;
 }
 ```
+
+# 0/1 Knapsack Problem
+
+## Problem Definition
+The 0/1 Knapsack problem is a classic optimization problem where we need to select items with given weights and values to maximize total value while keeping the total weight under a given capacity.
+
+## Example Problem
+Consider a knapsack with capacity W = 10 kg and 10 items with following weights and values:
+
+| Item | Weight (kg) | Value ($) |
+|------|------------|-----------|
+| 1    | 2          | 20        |
+| 2    | 3          | 30        |
+| 3    | 4          | 45        |
+| 4    | 1          | 15        |
+| 5    | 3          | 25        |
+| 6    | 2          | 35        |
+| 7    | 5          | 55        |
+| 8    | 1          | 10        |
+| 9    | 4          | 50        |
+| 10   | 2          | 40        |
+
+## Step-by-Step Solution
+
+### Step 1: Create DP Table
+Create a table with items (n+1) as rows and weights (W+1) as columns.
+- Rows: 0 to 10 (items)
+- Columns: 0 to 10 (weights)
+
+### Step 2: Initialize Base Cases
+- First row (no items): All zeros
+- First column (zero weight): All zeros
+
+| i\w | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|-----|---|---|---|---|---|---|---|---|---|---|-----|
+| 0   | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0  |
+
+### Step 3: Fill DP Table
+For each item i and weight w:```
+if (weight[i] ≤ w)
+    dp[i][w] = max(value[i] + dp[i-1][w-weight[i]], dp[i-1][w])
+else
+    dp[i][w] = dp[i-1][w]
+```
+
+#### Row 1 (Item 1: 2kg, $20)
+- For w < 2: Copy from above (can't include item)
+- For w ≥ 2: max(20 + dp[0][w-2], dp[0][w])
+
+| i\w | 0 | 1 | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|---|----|----|----|----|----|----|----|----|-----|
+| 0   | 0 | 0 | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 1   | 0 | 0 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 |
+
+#### Row 2 (Item 2: 3kg, $30)
+- For w < 3: Copy from above
+- For w ≥ 3: max(30 + dp[1][w-3], dp[1][w])
+
+| i\w | 0 | 1 | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|---|----|----|----|----|----|----|----|----|-----|
+| 0   | 0 | 0 | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 1   | 0 | 0 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 |
+| 2   | 0 | 0 | 20 | 30 | 30 | 50 | 50 | 50 | 50 | 50 | 50 |
+
+#### Row 3 (Item 3: 4kg, $45)
+- For w < 4: Copy from above
+- For w ≥ 4: max(45 + dp[2][w-4], dp[2][w])
+
+| i\w | 0 | 1 | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|---|----|----|----|----|----|----|----|----|-----|
+| 0   | 0 | 0 | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 1   | 0 | 0 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 | 20 |
+| 2   | 0 | 0 | 20 | 30 | 30 | 50 | 50 | 50 | 50 | 50 | 50 |
+| 3   | 0 | 0 | 20 | 30 | 45 | 50 | 65 | 75 | 75 | 95 | 95 |
+
+#### Row 4 (Item 4: 1kg, $15)
+- For w ≥ 1: max(15 + dp[3][w-1], dp[3][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 3   | 0 | 0  | 20 | 30 | 45 | 50 | 65 | 75 | 75 | 95 | 95 |
+| 4   | 0 | 15 | 20 | 35 | 45 | 60 | 65 | 80 | 90 | 95 | 110|
+
+#### Row 5 (Item 5: 3kg, $25)
+- For w ≥ 3: max(25 + dp[4][w-3], dp[4][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 4   | 0 | 15 | 20 | 35 | 45 | 60 | 65 | 80 | 90 | 95 | 110|
+| 5   | 0 | 15 | 20 | 35 | 45 | 60 | 65 | 80 | 90 | 95 | 110|
+
+#### Row 6 (Item 6: 2kg, $35)
+- For w ≥ 2: max(35 + dp[5][w-2], dp[5][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 5   | 0 | 15 | 20 | 35 | 45 | 60 | 65 | 80 | 90 | 95 | 110|
+| 6   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 115|
+
+#### Row 7 (Item 7: 5kg, $55)
+- For w ≥ 5: max(55 + dp[6][w-5], dp[6][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 6   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 115|
+| 7   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 125|
+
+#### Row 8 (Item 8: 1kg, $10)
+- For w ≥ 1: max(10 + dp[7][w-1], dp[7][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 7   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 125|
+| 8   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 125|
+
+#### Row 9 (Item 9: 4kg, $50)
+- For w ≥ 4: max(50 + dp[8][w-4], dp[8][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 8   | 0 | 15 | 35 | 50 | 55 | 70 | 80 | 85 | 100| 105| 125|
+| 9   | 0 | 15 | 35 | 50 | 55 | 70 | 85 | 90 | 105| 120| 135|
+
+#### Row 10 (Item 10: 2kg, $40)
+- For w ≥ 2: max(40 + dp[9][w-2], dp[9][w])
+
+| i\w | 0 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 |
+|-----|---|----|----|----|----|----|----|----|----|----|----|
+| 9   | 0 | 15 | 35 | 50 | 55 | 70 | 85 | 90 | 105| 120| 135|
+| 10  | 0 | 15 | 40 | 55 | 75 | 90 | 95 | 115| 130| 135| 155|
+
+### Step 4: Find Selected Items
+Backtrack through the DP table to find which items were selected:
+1. Start at dp[10][10] = 155
+2. If dp[i][w] ≠ dp[i-1][w], item i was selected
+   - Subtract item's weight from w
+   - Continue with dp[i-1][w-weight[i]]
+3. Otherwise, continue with dp[i-1][w]
+
+Selected items:
+- Item 10 (2kg, $40): 155 ≠ 135
+- Item 9 (4kg, $50): 115 ≠ 90
+- Item 6 (2kg, $35): 65 ≠ 60
+- Item 4 (1kg, $15): 15 ≠ 0
+- Total weight: 9kg
+- Total value: $140
+
+### Final Solution
+- Maximum value: $155
+- Selected items: 4, 6, 9, and 10
+- Total weight used: 9kg
+
+## C Implementation
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_ITEMS 11
+#define MAX_WEIGHT 11
+
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+void knapsack(int W, int weights[], int values[], int n) {
+    int dp[MAX_ITEMS][MAX_WEIGHT];
+    int i, w;
+
+    // Initialize base cases
+    for (w = 0; w <= W; w++)
+        dp[0][w] = 0;
+    for (i = 0; i <= n; i++)
+        dp[i][0] = 0;
+
+    // Fill dp table
+    for (i = 1; i <= n; i++) {
+        for (w = 1; w <= W; w++) {
+            if (weights[i-1] <= w)
+                dp[i][w] = max(values[i-1] + dp[i-1][w-weights[i-1]], 
+                              dp[i-1][w]);
+            else
+                dp[i][w] = dp[i-1][w];
+        }
+    }
+
+    // Print result
+    printf("Maximum value: $%d\n", dp[n][W]);
+
+    // Find selected items
+    printf("Selected items:\n");
+    w = W;
+    i = n;
+    while (i > 0 && w > 0) {
+        if (dp[i][w] != dp[i-1][w]) {
+            printf("Item %d (Weight: %dkg, Value: $%d)\n", 
+                   i, weights[i-1], values[i-1]);
+            w = w - weights[i-1];
+        }
+        i--;
+    }
+}
+
+int main() {
+    int weights[] = {2, 3, 4, 1, 3, 2, 5, 1, 4, 2};
+    int values[] = {20, 30, 45, 15, 25, 35, 55, 10, 50, 40};
+    int W = 10;  // Knapsack capacity
+    int n = 10;  // Number of items
+
+    knapsack(W, weights, values, n);
+    return 0;
+}
+```
+
+## Time and Space Complexity
+- Time Complexity: O(nW) where n is number of items and W is knapsack capacity
+- Space Complexity: O(nW) for the DP table
+
+## Applications
+1. Resource allocation in computing
+2. Cargo loading
+3. Investment decision making
+4. Portfolio optimization
+5. Project selection under constraints
+
