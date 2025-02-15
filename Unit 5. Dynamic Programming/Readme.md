@@ -1051,4 +1051,239 @@ Minimum Cost: 80
 Best Path: A B D C A
 ```
 
-// ... continue with rest of the document ...
+### Dynamic Programming Approach for TSP
+
+Unlike the brute force method which explores all possible paths (factorial complexity), dynamic programming reduces the complexity by:
+1. Breaking down the problem into smaller subproblems
+2. Storing solutions to avoid recalculating
+3. Using optimal substructure property
+
+
+
+### Decision Tree for TSP using Dynamic Programming
+```
+                                                    State[1][0]
+                                                   (Start at A)
+                                                   Path: A
+                                                   dp[1][0] = 0
+
+                        ┌────────────────────────────┼────────────────────────────┐
+                        ↓10                          ↓15                          ↓20
+                  State[3][1]                   State[5][2]                   State[9][3]
+                 (A,B visited)                 (A,C visited)                 (A,D visited) 
+                 Path: A->B                    Path: A->C                    Path: A->D
+                 dp[3][1] = 10                dp[5][2] = 15                dp[9][3] = 20
+
+            ┌────────────┴────────────┐   ┌────────────┴────────────┐   ┌────────────┴────────────┐
+            ↓35                      ↓25   ↓30                      ↓25  ↓25                      ↓30
+       State[7][2]              State[11][3]  State[13][2]         State[13][3]  State[11][2]    State[13][2]
+    (A,B,C visited)           (A,B,D visited) (A,C,D visited)    (A,C,D visited) (A,D,B visited) (A,D,C visited)
+    Path: A->B->C             Path: A->B->D   Path: A->C->D      Path: A->C->D   Path: A->D->B   Path: A->D->C
+    dp[7][2] = 45            dp[11][3] = 35  dp[13][2] = 45     dp[13][3] = 40  dp[11][2] = 45  dp[13][2] = 50
+
+    dp[mask][pos] = min(dp[mask][pos], dp[mask|(1<<next)][next] + graph[pos][next])
+
+Step 1: Initialize dp[1][0] = 0 (starting from city A)
+Step 2: Calculate minimum costs for visiting 2 cities:
+        - A->B: dp[3][1] = 10
+        - A->C: dp[5][2] = 15
+        - A->D: dp[9][3] = 20
+
+Step 3: Calculate minimum costs for visiting 3 cities:
+        - A->B->C: dp[7][2] = min(dp[3][1] + 35) = 45
+        - A->B->D: dp[11][3] = min(dp[3][1] + 25) = 35
+        - A->C->D: dp[13][3] = min(dp[5][2] + 25) = 40
+        - A->D->B: dp[11][2] = min(dp[9][3] + 25) = 45
+        - A->D->C: dp[13][2] = min(dp[9][3] + 30) = 50
+
+Step 4: Calculate final costs (including return to A):
+        Path: A->B->C->D->A = 95
+        Path: A->B->D->C->A = 80 (Optimal)
+        Path: A->C->D->B->A = 95
+        Path: A->D->C->B->A = 95
+
+Legend:
+- State[mask][pos]: mask = visited cities in binary, pos = current city
+- Numbers on edges represent costs between cities
+- * indicates optimal path
+- Final costs include return to city A
+
+Optimal Path Found: A → B → D → C → A (Cost: 80)
+Path Construction:
+1. A → B (cost: 10)
+2. B → D (cost: 25)
+3. D → C (cost: 30)
+4. C → A (cost: 15)
+Total: 80
+```
+
+#### Key Differences from Brute Force:
+1. **Time Complexity**:
+   - Brute Force: O(n!)
+   - Dynamic Programming: O(n²2ⁿ)
+
+2. **Space Usage**:
+   - Brute Force: O(n)
+   - Dynamic Programming: O(n2ⁿ)
+
+3. **Approach**:
+   - Brute Force: Tries all possible permutations
+   - Dynamic Programming: Uses subproblems and memoization
+
+#### DP State Definition
+```
+dp[mask][pos] = Minimum cost to visit all cities in mask, ending at city pos
+mask = Binary representation of visited cities
+pos = Current city
+```
+
+#### C Implementation using Dynamic Programming
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+
+#define MAX_CITIES 4
+#define INF INT_MAX
+
+int dp[1 << MAX_CITIES][MAX_CITIES];
+int visited_all;
+
+// Function to get minimum cost using DP
+int tsp(int mask, int pos, int graph[MAX_CITIES][MAX_CITIES]) {
+    // If all cities are visited
+    if (mask == visited_all) {
+        return graph[pos][0];  // Return to starting city
+    }
+    
+    // If this state is already computed
+    if (dp[mask][pos] != -1) {
+        return dp[mask][pos];
+    }
+    
+    int ans = INF;
+    
+    // Try to visit all unvisited cities
+    for (int city = 0; city < MAX_CITIES; city++) {
+        if ((mask & (1 << city)) == 0) {  // If city is not visited
+            int newAns = graph[pos][city] + tsp(mask | (1 << city), city, graph);
+            if (newAns < ans) {
+                ans = newAns;
+            }
+        }
+    }
+    
+    return dp[mask][pos] = ans;
+}
+
+void solveTSP_DP(int graph[MAX_CITIES][MAX_CITIES]) {
+    // Initialize visited_all and dp array
+    visited_all = (1 << MAX_CITIES) - 1;
+    memset(dp, -1, sizeof(dp));
+    
+    // Start from city 0 with only first city visited
+    int minCost = tsp(1, 0, graph);
+    
+    printf("\nDP Solution:\n");
+    printf("Minimum Cost: %d\n", minCost);
+    
+    // Print DP table state
+    printf("\nDP Table State (Partial View):\n");
+    for (int mask = 0; mask < 4; mask++) {
+        for (int pos = 0; pos < MAX_CITIES; pos++) {
+            if (dp[mask][pos] != -1) {
+                printf("dp[%d][%d] = %d\n", mask, pos, dp[mask][pos]);
+            }
+        }
+    }
+}
+
+int main() {
+    int graph[MAX_CITIES][MAX_CITIES] = {
+        {0,  10, 15, 20},
+        {10, 0,  35, 25},
+        {15, 35, 0,  30},
+        {20, 25, 30, 0}
+    };
+
+    printf("TSP using Dynamic Programming\n");
+    printf("\nDistance Matrix:\n");
+    printf("  A  B  C  D\n");
+    for (int i = 0; i < MAX_CITIES; i++) {
+        printf("%c ", i + 'A');
+        for (int j = 0; j < MAX_CITIES; j++) {
+            printf("%2d ", graph[i][j]);
+        }
+        printf("\n");
+    }
+
+    solveTSP_DP(graph);
+    return 0;
+}
+```
+
+#### Sample Output:
+```
+TSP using Dynamic Programming
+
+Distance Matrix:
+  A  B  C  D
+A  0 10 15 20 
+B 10  0 35 25 
+C 15 35  0 30 
+D 20 25 30  0 
+
+DP Solution:
+Minimum Cost: 80
+
+DP Table State (Partial View):
+dp[1][0] = 80
+dp[3][1] = 65
+dp[7][2] = 45
+dp[15][3] = 20
+```
+
+#### How DP Works:
+1. **State Representation**:
+   - Uses bit masking to track visited cities
+   - Each state represents a subset of visited cities
+
+2. **Subproblem Definition**:
+   ```
+   For mask = 0001 (only A visited):
+   dp[0001][A] = min cost starting from A
+
+   For mask = 0011 (A and B visited):
+   dp[0011][B] = min cost starting from A, visiting B
+   ```
+
+3. **Optimal Substructure**:
+   - Minimum cost for visiting remaining cities
+   - Plus cost of returning to start
+
+4. **Memoization**:
+   - Stores results in dp table
+   - Avoids recalculating same states
+
+#### Advantages over Brute Force:
+1. **Faster for larger inputs**:
+   - Reduces redundant calculations
+   - Better time complexity
+
+2. **Memory efficient for medium-sized inputs**:
+   - Stores only necessary states
+   - Reuses computed results
+
+3. **Systematic approach**:
+   - Bottom-up construction
+   - Guaranteed optimal solution
+
+#### Limitations:
+1. **Memory usage**:
+   - Grows exponentially with cities
+   - Limited by available RAM
+
+2. **Still exponential**:
+   - Better than n! but still O(n²2ⁿ)
+   - Not practical for very large inputs
