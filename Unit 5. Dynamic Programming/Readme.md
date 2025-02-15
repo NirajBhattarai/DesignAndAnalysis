@@ -1053,98 +1053,357 @@ Best Path: A B D C A
 
 ### Dynamic Programming Approach for TSP
 
-Unlike the brute force method which explores all possible paths (factorial complexity), dynamic programming reduces the complexity by:
-1. Breaking down the problem into smaller subproblems
-2. Storing solutions to avoid recalculating
-3. Using optimal substructure property
+Consider a graph with 6 cities (A, B, C, D, E, F) with the following distance matrix:
+
+| From/To | A | B | C | D | E | F |
+|---------|---|---|---|---|---|---|
+| A       | 0 | 10| 15| 20| 25| 30|
+| B       | 10| 0 | 35| 25| 30| 20|
+| C       | 15| 35| 0 | 30| 20| 25|
+| D       | 20| 25| 30| 0 | 15| 10|
+| E       | 25| 30| 20| 15| 0 | 35|
+| F       | 30| 20| 25| 10| 35| 0 |
+
+### Step-by-Step Solution
+
+#### Step 1: Base Cases (S = Φ, empty set)
+Calculate the cost of returning directly to the start city A from all other cities:
+- Cost(B,Φ,A) = d(B,A) = 10
+- Cost(C,Φ,A) = d(C,A) = 15
+- Cost(D,Φ,A) = d(D,A) = 20
+- Cost(E,Φ,A) = d(E,A) = 25
+- Cost(F,Φ,A) = d(F,A) = 30
+
+#### Step 2: One city in set S (S = {B})
+Calculate minimum cost when B is fixed and we need to visit other cities before returning to A:
+- Cost(C,{B},A) = d[C,B] + Cost(B,Φ,A) = 35 + 10 = 45
+- Cost(D,{B},A) = d[D,B] + Cost(B,Φ,A) = 25 + 10 = 35
+- Cost(E,{B},A) = d[E,B] + Cost(B,Φ,A) = 30 + 10 = 40
+- Cost(F,{B},A) = d[F,B] + Cost(B,Φ,A) = 20 + 10 = 30
+
+#### Step 3: One city in set S (S = {C})
+Calculate minimum cost when C is fixed and we need to visit other cities before returning to A:
+- Cost(B,{C},A) = d[B,C] + Cost(C,Φ,A) = 35 + 15 = 50
+- Cost(D,{C},A) = d[D,C] + Cost(C,Φ,A) = 30 + 15 = 45
+- Cost(E,{C},A) = d[E,C] + Cost(C,Φ,A) = 20 + 15 = 35
+- Cost(F,{C},A) = d[F,C] + Cost(C,Φ,A) = 25 + 15 = 40
+
+#### Step 4: One city in set S (S = {D})
+Calculate minimum cost when D is fixed and we need to visit other cities before returning to A:
+- Cost(B,{D},A) = d[B,D] + Cost(D,Φ,A) = 25 + 20 = 45
+- Cost(C,{D},A) = d[C,D] + Cost(D,Φ,A) = 30 + 20 = 50
+- Cost(E,{D},A) = d[E,D] + Cost(D,Φ,A) = 15 + 20 = 35
+- Cost(F,{D},A) = d[F,D] + Cost(D,Φ,A) = 10 + 20 = 30
+
+#### Step 5: One city in set S (S = {E})
+Calculate minimum cost when E is fixed and we need to visit other cities before returning to A:
+- Cost(B,{E},A) = d[B,E] + Cost(E,Φ,A) = 30 + 25 = 55
+- Cost(C,{E},A) = d[C,E] + Cost(E,Φ,A) = 20 + 25 = 45
+- Cost(D,{E},A) = d[D,E] + Cost(E,Φ,A) = 15 + 25 = 40
+- Cost(F,{E},A) = d[F,E] + Cost(E,Φ,A) = 35 + 25 = 60
+
+#### Step 6: One city in set S (S = {F})
+Calculate minimum cost when F is fixed and we need to visit other cities before returning to A:
+- Cost(B,{F},A) = d[B,F] + Cost(F,Φ,A) = 20 + 30 = 50
+- Cost(C,{F},A) = d[C,F] + Cost(F,Φ,A) = 25 + 30 = 55
+- Cost(D,{F},A) = d[D,F] + Cost(F,Φ,A) = 10 + 30 = 40
+- Cost(E,{F},A) = d[E,F] + Cost(F,Φ,A) = 35 + 30 = 65
+
+#### Step 7: Two cities in set S (S = {B,C})
+Calculate minimum cost when visiting both B and C before returning to A:
+- Cost(D,{B,C},A) = min{
+  d[D,B] + Cost(B,{C},A),
+  d[D,C] + Cost(C,{B},A)
+} = min{25 + 50, 30 + 50} = 75
+- Cost(E,{B,C},A) = min{
+  d[E,B] + Cost(B,{C},A),
+  d[E,C] + Cost(C,{B},A)
+} = min{30 + 50, 20 + 50} = 70
+- Cost(F,{B,C},A) = min{
+  d[F,B] + Cost(B,{C},A),
+  d[F,C] + Cost(C,{B},A)
+} = min{20 + 50, 25 + 50} = 70
+
+#### Step 8: Two cities in set S (S = {B,D})
+Calculate minimum cost when visiting both B and D before returning to A:
+- Cost(C,{B,D},A) = min{
+  d[C,B] + Cost(B,{D},A),
+  d[C,D] + Cost(D,{B},A)
+} = min{35 + 45, 30 + 45} = 75
+- Cost(E,{B,D},A) = min{
+  d[E,B] + Cost(B,{D},A),
+  d[E,D] + Cost(D,{B},A)
+} = min{30 + 45, 15 + 45} = 60
+- Cost(F,{B,D},A) = min{
+  d[F,B] + Cost(B,{D},A),
+  d[F,D] + Cost(D,{B},A)
+} = min{20 + 45, 10 + 45} = 55
+
+#### Step 9: Two cities in set S (S = {B,E})
+Calculate minimum cost when visiting both B and E before returning to A:
+- Cost(C,{B,E},A) = min{
+  d[C,B] + Cost(B,{E},A),
+  d[C,E] + Cost(E,{B},A)
+} = min{35 + 40, 20 + 55} = 75
+- Cost(D,{B,E},A) = min{
+  d[D,B] + Cost(B,{E},A),
+  d[D,E] + Cost(E,{B},A)
+} = min{25 + 40, 15 + 55} = 65
+- Cost(F,{B,E},A) = min{
+  d[F,B] + Cost(B,{E},A),
+  d[F,E] + Cost(E,{B},A)
+} = min{20 + 40, 35 + 55} = 60
+
+#### Step 10: Two cities in set S (S = {B,F})
+Calculate minimum cost when visiting both B and F before returning to A:
+- Cost(C,{B,F},A) = min{
+  d[C,B] + Cost(B,{F},A),
+  d[C,F] + Cost(F,{B},A)
+} = min{35 + 50, 25 + 50} = 75
+- Cost(D,{B,F},A) = min{
+  d[D,B] + Cost(B,{F},A),
+  d[D,F] + Cost(F,{B},A)
+} = min{25 + 50, 10 + 50} = 60
+- Cost(E,{B,F},A) = min{
+  d[E,B] + Cost(B,{F},A),
+  d[E,F] + Cost(F,{B},A)
+} = min{30 + 50, 35 + 50} = 80
+
+#### Step 11: Two cities in set S (S = {C,D})
+Calculate minimum cost when visiting both C and D before returning to A:
+- Cost(B,{C,D},A) = min{
+  d[B,C] + Cost(C,{D},A),
+  d[B,D] + Cost(D,{C},A)
+} = min{35 + 45, 25 + 50} = 75
+- Cost(E,{C,D},A) = min{
+  d[E,C] + Cost(C,{D},A),
+  d[E,D] + Cost(D,{C},A)
+} = min{20 + 45, 15 + 50} = 65
+- Cost(F,{C,D},A) = min{
+  d[F,C] + Cost(C,{D},A),
+  d[F,D] + Cost(D,{C},A)
+} = min{25 + 45, 10 + 50} = 60
+
+#### Step 12: Two cities in set S (S = {C,E})
+Calculate minimum cost when visiting both C and E before returning to A:
+- Cost(B,{C,E},A) = min{
+  d[B,C] + Cost(C,{E},A),
+  d[B,E] + Cost(E,{C},A)
+} = min{35 + 45, 30 + 45} = 75
+- Cost(D,{C,E},A) = min{
+  d[D,C] + Cost(C,{E},A),
+  d[D,E] + Cost(E,{C},A)
+} = min{30 + 45, 15 + 45} = 60
+- Cost(F,{C,E},A) = min{
+  d[F,C] + Cost(C,{E},A),
+  d[F,E] + Cost(E,{C},A)
+} = min{25 + 45, 35 + 45} = 70
+
+#### Step 13: Two cities in set S (S = {C,F})
+Calculate minimum cost when visiting both C and F before returning to A:
+- Cost(B,{C,F},A) = min{
+  d[B,C] + Cost(C,{F},A),
+  d[B,F] + Cost(F,{C},A)
+} = min{35 + 40, 20 + 55} = 75
+- Cost(D,{C,F},A) = min{
+  d[D,C] + Cost(C,{F},A),
+  d[D,F] + Cost(F,{C},A)
+} = min{30 + 40, 10 + 55} = 65
+- Cost(E,{C,F},A) = min{
+  d[E,C] + Cost(C,{F},A),
+  d[E,F] + Cost(F,{C},A)
+} = min{20 + 40, 35 + 55} = 60
+
+#### Step 14: Two cities in set S (S = {D,E})
+Calculate minimum cost when visiting both D and E before returning to A:
+- Cost(B,{D,E},A) = min{
+  d[B,D] + Cost(D,{E},A),
+  d[B,E] + Cost(E,{D},A)
+} = min{25 + 40, 30 + 40} = 65
+- Cost(C,{D,E},A) = min{
+  d[C,D] + Cost(D,{E},A),
+  d[C,E] + Cost(E,{D},A)
+} = min{30 + 40, 20 + 40} = 60
+- Cost(F,{D,E},A) = min{
+  d[F,D] + Cost(D,{E},A),
+  d[F,E] + Cost(E,{D},A)
+} = min{10 + 40, 35 + 40} = 50
+
+#### Step 15: Three cities in set S (S = {B,C,D})
+Calculate minimum cost when visiting B, C, and D before returning to A:
+- Cost(E,{B,C,D},A) = min{
+  d[E,B] + Cost(B,{C,D},A),
+  d[E,C] + Cost(C,{B,D},A),
+  d[E,D] + Cost(D,{B,C},A)
+} = min{30 + 75, 20 + 75, 15 + 75} = 90
+- Cost(F,{B,C,D},A) = min{
+  d[F,B] + Cost(B,{C,D},A),
+  d[F,C] + Cost(C,{B,D},A),
+  d[F,D] + Cost(D,{B,C},A)
+} = min{20 + 75, 25 + 75, 10 + 75} = 85
+
+#### Step 16: Three cities in set S (S = {B,C,E})
+Calculate minimum cost when visiting B, C, and E before returning to A:
+- Cost(D,{B,C,E},A) = min{
+  d[D,B] + Cost(B,{C,E},A),
+  d[D,C] + Cost(C,{B,E},A),
+  d[D,E] + Cost(E,{B,C},A)
+} = min{25 + 75, 30 + 75, 15 + 70} = 85
+- Cost(F,{B,C,E},A) = min{
+  d[F,B] + Cost(B,{C,E},A),
+  d[F,C] + Cost(C,{B,E},A),
+  d[F,E] + Cost(E,{B,C},A)
+} = min{20 + 75, 25 + 75, 35 + 70} = 95
+
+#### Step 17: Three cities in set S (S = {B,C,F})
+Calculate minimum cost when visiting B, C, and F before returning to A:
+- Cost(D,{B,C,F},A) = min{
+  d[D,B] + Cost(B,{C,F},A),
+  d[D,C] + Cost(C,{B,F},A),
+  d[D,F] + Cost(F,{B,C},A)
+} = min{25 + 75, 30 + 75, 10 + 70} = 80
+- Cost(E,{B,C,F},A) = min{
+  d[E,B] + Cost(B,{C,F},A),
+  d[E,C] + Cost(C,{B,F},A),
+  d[E,F] + Cost(F,{B,C},A)
+} = min{30 + 75, 20 + 75, 35 + 70} = 95
+
+#### Step 18: Three cities in set S (S = {B,D,E})
+Calculate minimum cost when visiting B, D, and E before returning to A:
+- Cost(C,{B,D,E},A) = min{
+  d[C,B] + Cost(B,{D,E},A),
+  d[C,D] + Cost(D,{B,E},A),
+  d[C,E] + Cost(E,{B,D},A)
+} = min{35 + 65, 30 + 60, 20 + 65} = 85
+- Cost(F,{B,D,E},A) = min{
+  d[F,B] + Cost(B,{D,E},A),
+  d[F,D] + Cost(D,{B,E},A),
+  d[F,E] + Cost(E,{B,D},A)
+} = min{20 + 65, 10 + 60, 35 + 65} = 70
+
+#### Step 19: Three cities in set S (S = {B,D,F})
+Calculate minimum cost when visiting B, D, and F before returning to A:
+- Cost(C,{B,D,F},A) = min{
+  d[C,B] + Cost(B,{D,F},A),
+  d[C,D] + Cost(D,{B,F},A),
+  d[C,F] + Cost(F,{B,D},A)
+} = min{35 + 60, 30 + 60, 25 + 55} = 80
+- Cost(E,{B,D,F},A) = min{
+  d[E,B] + Cost(B,{D,F},A),
+  d[E,D] + Cost(D,{B,F},A),
+  d[E,F] + Cost(F,{B,D},A)
+} = min{30 + 60, 15 + 60, 35 + 55} = 75
+
+#### Step 20: Three cities in set S (S = {B,E,F})
+Calculate minimum cost when visiting B, E, and F before returning to A:
+- Cost(C,{B,E,F},A) = min{
+  d[C,B] + Cost(B,{E,F},A),
+  d[C,E] + Cost(E,{B,F},A),
+  d[C,F] + Cost(F,{B,E},A)
+} = min{35 + 80, 20 + 80, 25 + 60} = 85
+- Cost(D,{B,E,F},A) = min{
+  d[D,B] + Cost(B,{E,F},A),
+  d[D,E] + Cost(E,{B,F},A),
+  d[D,F] + Cost(F,{B,E},A)
+} = min{25 + 80, 15 + 80, 10 + 60} = 70
+
+#### Step 21: Three cities in set S (S = {C,D,E})
+Calculate minimum cost when visiting C, D, and E before returning to A:
+- Cost(B,{C,D,E},A) = min{
+  d[B,C] + Cost(C,{D,E},A),
+  d[B,D] + Cost(D,{C,E},A),
+  d[B,E] + Cost(E,{C,D},A)
+} = min{35 + 65, 25 + 60, 30 + 60} = 85
+- Cost(F,{C,D,E},A) = min{
+  d[F,C] + Cost(C,{D,E},A),
+  d[F,D] + Cost(D,{C,E},A),
+  d[F,E] + Cost(E,{C,D},A)
+} = min{25 + 65, 10 + 60, 35 + 60} = 70
+
+#### Step 22: Three cities in set S (S = {C,D,F})
+Calculate minimum cost when visiting C, D, and F before returning to A:
+- Cost(B,{C,D,F},A) = min{
+  d[B,C] + Cost(C,{D,F},A),
+  d[B,D] + Cost(D,{C,F},A),
+  d[B,F] + Cost(F,{C,D},A)
+} = min{35 + 65, 25 + 65, 20 + 60} = 80
+- Cost(E,{C,D,F},A) = min{
+  d[E,C] + Cost(C,{D,F},A),
+  d[E,D] + Cost(D,{C,F},A),
+  d[E,F] + Cost(F,{C,D},A)
+} = min{20 + 65, 15 + 65, 35 + 60} = 80
+
+#### Step 23: Three cities in set S (S = {C,E,F})
+Calculate minimum cost when visiting C, E, and F before returning to A:
+- Cost(B,{C,E,F},A) = min{
+  d[B,C] + Cost(C,{E,F},A),
+  d[B,E] + Cost(E,{C,F},A),
+  d[B,F] + Cost(F,{C,E},A)
+} = min{35 + 70, 30 + 70, 20 + 60} = 80
+- Cost(D,{C,E,F},A) = min{
+  d[D,C] + Cost(C,{E,F},A),
+  d[D,E] + Cost(E,{C,F},A),
+  d[D,F] + Cost(F,{C,E},A)
+} = min{30 + 70, 15 + 70, 10 + 60} = 70
+
+#### Step 24: Three cities in set S (S = {D,E,F})
+Calculate minimum cost when visiting D, E, and F before returning to A:
+- Cost(B,{D,E,F},A) = min{
+  d[B,D] + Cost(D,{E,F},A),
+  d[B,E] + Cost(E,{D,F},A),
+  d[B,F] + Cost(F,{D,E},A)
+} = min{25 + 50, 30 + 50, 20 + 50} = 70
+- Cost(C,{D,E,F},A) = min{
+  d[C,D] + Cost(D,{E,F},A),
+  d[C,E] + Cost(E,{D,F},A),
+  d[C,F] + Cost(F,{D,E},A)
+} = min{30 + 50, 20 + 50, 25 + 50} = 70
+
+#### Step 25: Four cities in set S (S = {B,C,D,E})
+Calculate minimum cost when visiting B, C, D, and E before returning to A:
+- Cost(F,{B,C,D,E},A) = min{
+  d[F,B] + Cost(B,{C,D,E},A),
+  d[F,C] + Cost(C,{B,D,E},A),
+  d[F,D] + Cost(D,{B,C,E},A),
+  d[F,E] + Cost(E,{B,C,D},A)
+} = min{20 + 90, 25 + 90, 10 + 90, 35 + 90} = 100
+
+#### Final Step: Optimal Solution (S = {B,C,D,E,F})
+The minimum cost path starting from A, visiting all cities exactly once, and returning to A is:
+Cost(A,{B,C,D,E,F},A) = min{
+  d[A,B] + Cost(B,{C,D,E,F},A),
+  d[A,C] + Cost(C,{B,D,E,F},A),
+  d[A,D] + Cost(D,{B,C,E,F},A),
+  d[A,E] + Cost(E,{B,C,D,F},A),
+  d[A,F] + Cost(F,{B,C,D,E},A)
+} = min{10 + 100, 15 + 100, 20 + 100, 25 + 100, 30 + 100} = 110
+
+The optimal path can be reconstructed by backtracking through the DP table:
+A → B → C → D → E → F → A with total cost 110.
+
+### Time and Space Complexity
+- Time Complexity: O(n²2ⁿ) where n is the number of cities
+- Space Complexity: O(n2ⁿ) for storing the DP states
+
+### Explanation
+
+1. **Distance Matrix**: The distance matrix is expanded to include 6 cities, with new distances added for cities E and F.
+
+2. **Code Adjustments**: The `MAX_CITIES` constant is updated to 6, and the `graph` array is expanded to accommodate the new cities and their distances.
+
+3. **DP Table Initialization**: The `dp` array is initialized to handle the increased number of states due to the additional cities.
+
+This updated implementation will calculate the minimum cost path for visiting all 6 cities and returning to the starting city using dynamic programming.
 
 
-
-### Decision Tree for TSP using Dynamic Programming
-```
-                                                    State[1][0]
-                                                   (Start at A)
-                                                   Path: A
-                                                   dp[1][0] = 0
-
-                        ┌────────────────────────────┼────────────────────────────┐
-                        ↓10                          ↓15                          ↓20
-                  State[3][1]                   State[5][2]                   State[9][3]
-                 (A,B visited)                 (A,C visited)                 (A,D visited) 
-                 Path: A->B                    Path: A->C                    Path: A->D
-                 dp[3][1] = 10                dp[5][2] = 15                dp[9][3] = 20
-
-            ┌────────────┴────────────┐   ┌────────────┴────────────┐   ┌────────────┴────────────┐
-            ↓35                      ↓25   ↓30                      ↓25  ↓25                      ↓30
-       State[7][2]              State[11][3]  State[13][2]         State[13][3]  State[11][2]    State[13][2]
-    (A,B,C visited)           (A,B,D visited) (A,C,D visited)    (A,C,D visited) (A,D,B visited) (A,D,C visited)
-    Path: A->B->C             Path: A->B->D   Path: A->C->D      Path: A->C->D   Path: A->D->B   Path: A->D->C
-    dp[7][2] = 45            dp[11][3] = 35  dp[13][2] = 45     dp[13][3] = 40  dp[11][2] = 45  dp[13][2] = 50
-
-    dp[mask][pos] = min(dp[mask][pos], dp[mask|(1<<next)][next] + graph[pos][next])
-
-Step 1: Initialize dp[1][0] = 0 (starting from city A)
-Step 2: Calculate minimum costs for visiting 2 cities:
-        - A->B: dp[3][1] = 10
-        - A->C: dp[5][2] = 15
-        - A->D: dp[9][3] = 20
-
-Step 3: Calculate minimum costs for visiting 3 cities:
-        - A->B->C: dp[7][2] = min(dp[3][1] + 35) = 45
-        - A->B->D: dp[11][3] = min(dp[3][1] + 25) = 35
-        - A->C->D: dp[13][3] = min(dp[5][2] + 25) = 40
-        - A->D->B: dp[11][2] = min(dp[9][3] + 25) = 45
-        - A->D->C: dp[13][2] = min(dp[9][3] + 30) = 50
-
-Step 4: Calculate final costs (including return to A):
-        Path: A->B->C->D->A = 95
-        Path: A->B->D->C->A = 80 (Optimal)
-        Path: A->C->D->B->A = 95
-        Path: A->D->C->B->A = 95
-
-Legend:
-- State[mask][pos]: mask = visited cities in binary, pos = current city
-- Numbers on edges represent costs between cities
-- * indicates optimal path
-- Final costs include return to city A
-
-Optimal Path Found: A → B → D → C → A (Cost: 80)
-Path Construction:
-1. A → B (cost: 10)
-2. B → D (cost: 25)
-3. D → C (cost: 30)
-4. C → A (cost: 15)
-Total: 80
-```
-
-#### Key Differences from Brute Force:
-1. **Time Complexity**:
-   - Brute Force: O(n!)
-   - Dynamic Programming: O(n²2ⁿ)
-
-2. **Space Usage**:
-   - Brute Force: O(n)
-   - Dynamic Programming: O(n2ⁿ)
-
-3. **Approach**:
-   - Brute Force: Tries all possible permutations
-   - Dynamic Programming: Uses subproblems and memoization
-
-#### DP State Definition
-```
-dp[mask][pos] = Minimum cost to visit all cities in mask, ending at city pos
-mask = Binary representation of visited cities
-pos = Current city
-```
-
-#### C Implementation using Dynamic Programming
+### C Implementation using Dynamic Programming
 ```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 
-#define MAX_CITIES 4
+#define MAX_CITIES 6
 #define INF INT_MAX
 
 int dp[1 << MAX_CITIES][MAX_CITIES];
@@ -1190,7 +1449,7 @@ void solveTSP_DP(int graph[MAX_CITIES][MAX_CITIES]) {
     
     // Print DP table state
     printf("\nDP Table State (Partial View):\n");
-    for (int mask = 0; mask < 4; mask++) {
+    for (int mask = 0; mask < (1 << MAX_CITIES); mask++) {
         for (int pos = 0; pos < MAX_CITIES; pos++) {
             if (dp[mask][pos] != -1) {
                 printf("dp[%d][%d] = %d\n", mask, pos, dp[mask][pos]);
@@ -1201,15 +1460,17 @@ void solveTSP_DP(int graph[MAX_CITIES][MAX_CITIES]) {
 
 int main() {
     int graph[MAX_CITIES][MAX_CITIES] = {
-        {0,  10, 15, 20},
-        {10, 0,  35, 25},
-        {15, 35, 0,  30},
-        {20, 25, 30, 0}
+        {0,  10, 15, 20, 25, 30},
+        {10, 0,  35, 25, 30, 20},
+        {15, 35, 0,  30, 20, 25},
+        {20, 25, 30, 0,  15, 10},
+        {25, 30, 20, 15, 0,  35},
+        {30, 20, 25, 10, 35, 0}
     };
 
     printf("TSP using Dynamic Programming\n");
     printf("\nDistance Matrix:\n");
-    printf("  A  B  C  D\n");
+    printf("  A  B  C  D  E  F\n");
     for (int i = 0; i < MAX_CITIES; i++) {
         printf("%c ", i + 'A');
         for (int j = 0; j < MAX_CITIES; j++) {
@@ -1222,68 +1483,3 @@ int main() {
     return 0;
 }
 ```
-
-#### Sample Output:
-```
-TSP using Dynamic Programming
-
-Distance Matrix:
-  A  B  C  D
-A  0 10 15 20 
-B 10  0 35 25 
-C 15 35  0 30 
-D 20 25 30  0 
-
-DP Solution:
-Minimum Cost: 80
-
-DP Table State (Partial View):
-dp[1][0] = 80
-dp[3][1] = 65
-dp[7][2] = 45
-dp[15][3] = 20
-```
-
-#### How DP Works:
-1. **State Representation**:
-   - Uses bit masking to track visited cities
-   - Each state represents a subset of visited cities
-
-2. **Subproblem Definition**:
-   ```
-   For mask = 0001 (only A visited):
-   dp[0001][A] = min cost starting from A
-
-   For mask = 0011 (A and B visited):
-   dp[0011][B] = min cost starting from A, visiting B
-   ```
-
-3. **Optimal Substructure**:
-   - Minimum cost for visiting remaining cities
-   - Plus cost of returning to start
-
-4. **Memoization**:
-   - Stores results in dp table
-   - Avoids recalculating same states
-
-#### Advantages over Brute Force:
-1. **Faster for larger inputs**:
-   - Reduces redundant calculations
-   - Better time complexity
-
-2. **Memory efficient for medium-sized inputs**:
-   - Stores only necessary states
-   - Reuses computed results
-
-3. **Systematic approach**:
-   - Bottom-up construction
-   - Guaranteed optimal solution
-
-#### Limitations:
-1. **Memory usage**:
-   - Grows exponentially with cities
-   - Limited by available RAM
-
-2. **Still exponential**:
-   - Better than n! but still O(n²2ⁿ)
-   - Not practical for very large inputs
