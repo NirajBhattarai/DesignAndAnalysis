@@ -653,8 +653,8 @@ Apply formula with k varying from i to j-1
 Resulting table after length 4:
 | i\j | 1     | 2      | 3      | 4      | 5      | 6      | 7      |
 |-----|-------|--------|--------|--------|--------|--------|--------|
-| 1   | 0     | 13,125 | 22,375 | 50,250 | -      | -      | -      |
-| 2   | -     | 0      | 11,250 | 29,250 | 41,250 | -      | -      |
+| 1   | 0     | 13,125 | 22,375 | 50,250 | 57,000 | -      | -      |
+| 2   | -     | 0      | 11,250 | 29,250 | 41,250 | 57,000 | -      |
 | 3   | -     | -      | 0      | 30,000 | 39,000 | 56,500 | -      |
 | 4   | -     | -      | -      | 0      | 24,000 | 45,000 | 82,500 |
 | 5   | -     | -      | -      | -      | 0      | 28,000 | 67,500 |
@@ -718,8 +718,8 @@ Resulting table after length 4:
 Resulting table after length 5:
 | i\j | 1     | 2      | 3      | 4      | 5      | 6      | 7      |
 |-----|-------|--------|--------|--------|--------|--------|--------|
-| 1   | 0     | 13,125 | 22,375 | 50,250 | 57,000 | -      | -      |
-| 2   | -     | 0      | 11,250 | 29,250 | 41,250 | 57,000 | -      |
+| 1   | 0     | 13,125 | 22,375 | 50,250 | 57,000 | 81,500 | 104,250|
+| 2   | -     | 0      | 11,250 | 29,250 | 41,250 | 57,000 | 80,625 |
 | 3   | -     | -      | 0      | 30,000 | 39,000 | 56,500 | 93,000 |
 | 4   | -     | -      | -      | 0      | 24,000 | 45,000 | 82,500 |
 | 5   | -     | -      | -      | -      | 0      | 28,000 | 67,500 |
@@ -787,6 +787,38 @@ Resulting table after length 6:
 3. Optimization of tensor operations in deep learning
 4. Parallel processing of matrix chains
 
+
+### Generating K Table (Split Points)
+The K table stores the split points that give us the minimum cost for each subproblem. We generate it alongside our main DP table M.
+
+For each subproblem M[i,j], we store in K[i,j] the value of k that gave us the minimum cost.
+
+Procedure:
+1. For each length L from 2 to n
+2. For each starting point i from 1 to n-L+1
+3. Calculate j = i+L-1
+4. For each split point k from i to j-1:
+   - Calculate cost = M[i,k] + M[k+1,j] + (rows(i) × cols(k) × cols(j))
+   - If this cost is less than current minimum:
+     * Update minimum cost in M[i,j]
+     * Store k in K[i,j]
+
+Example calculation for M[1,3]:
+```
+k = 1: cost = M[1,1] + M[2,3] + (35 × 15 × 30) = 0 + 11,250 + 15,750 = 27,000
+k = 2: cost = M[1,2] + M[3,3] + (35 × 25 × 30) = 13,125 + 0 + 26,250 = 22,375 ← Minimum
+Store K[1,3] = 2
+```
+
+Example calculation for M[2,4]:
+```
+k = 2: cost = M[2,2] + M[3,4] + (15 × 25 × 40) = 0 + 30,000 + 15,000 = 45,000
+k = 3: cost = M[2,3] + M[4,4] + (15 × 30 × 40) = 11,250 + 0 + 18,000 = 29,250 ← Minimum
+Store K[2,4] = 3
+```
+
+This process continues until we fill both M and K tables. The K table will then be used to reconstruct the optimal parenthesization.
+
 ### K Table (Split Points)
 | i\j | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |-----|---|---|---|---|---|---|---|
@@ -829,21 +861,12 @@ Total cost = 104,250 (matches our DP table value at M[1,7])
 
 # Traveling Salesman Problem (TSP)
 
-## Problem Definition
-The Traveling Salesman Problem (TSP) is a classic optimization problem that asks: "Given a list of cities and the distances between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city?"
+## Brute Force Approach
 
-## Formula and Rules
-1. Base Case: dp[i][{i}] = 0 (cost to visit single city is 0)
-2. Recursive Formula: dp[i][S] = min { dist[i][j] + dp[j][S-{i}] }
-   where j belongs to set S, and j ≠ i
+The brute force approach for TSP involves generating all possible permutations of cities and finding the minimum cost path that visits all cities exactly once and returns to the starting city.
 
-### Important Rules:
-1. Each city must be visited exactly once
-2. The path must return to the starting city
-3. The total distance should be minimized
-
-## Example with 4 Cities
-Consider cities A, B, C, D with distances:
+### Example with 4 Cities
+Consider a graph with 4 cities (A, B, C, D) with the following distance matrix:
 
 | From/To | A | B | C | D |
 |---------|---|---|---|---|
@@ -852,304 +875,35 @@ Consider cities A, B, C, D with distances:
 | C       | 15| 35| 0 | 30|
 | D       | 20| 25| 30| 0 |
 
-## Step-by-Step Solution
-
-### Step 1: Initialize (Single Cities)
-Base case: Cost to visit a single city is 0
-
-| City | {A} | {B} | {C} | {D} |
-|------|-----|-----|-----|-----|
-| A    | 0   | ∞   | ∞   | ∞   |
-| B    | ∞   | 0   | ∞   | ∞   |
-| C    | ∞   | ∞   | 0   | ∞   |
-| D    | ∞   | ∞   | ∞   | 0   |
-
-### Step 2: Calculate for Two Cities
-For each pair of cities, calculate minimum cost:
-
-#### Example: Subset {A,B}
-From A to B:
-- Cost = dist[A][B] + dp[B][{B}] = 10 + 0 = 10
-
-From B to A:
-- Cost = dist[B][A] + dp[A][{A}] = 10 + 0 = 10
-
-| City | {A,B} | {A,C} | {A,D} | {B,C} | {B,D} | {C,D} |
-|------|-------|-------|-------|-------|-------|-------|
-| A    | 10    | 15    | 20    | ∞     | ∞     | ∞     |
-| B    | 10    | ∞     | ∞     | 35    | 25    | ∞     |
-| C    | ∞     | 15    | ∞     | 35    | ∞     | 30    |
-| D    | ∞     | ∞     | 20    | ∞     | 25    | 30    |
-
-### Step 3: Calculate for Three Cities
-
-#### Example: Subset {A,B,C}
-Starting at A:
-1. Through B then C:
-   - Cost = dist[A][B] + dp[B][{B,C}]
-   - = 10 + 35 = 45
-2. Through C then B:
-   - Cost = dist[A][C] + dp[C][{B,C}]
-   - = 15 + 35 = 50
-Choose minimum: 45
-
-Similar calculations for all three-city combinations:
-
-| City | {A,B,C} | {A,B,D} | {A,C,D} | {B,C,D} |
-|------|----------|----------|----------|----------|
-| A    | 45       | 35       | 45       | ∞        |
-| B    | 45       | 35       | ∞        | 55       |
-| C    | 50       | ∞        | 45       | 55       |
-| D    | ∞        | 45       | 45       | 55       |
-
-### Step 4: Calculate for All Cities
-
-#### Final Step Calculation
-Starting at A:
-1. Through B → C → D → A:
-   - Cost = 10 + 35 + 30 + 20 = 95
-2. Through B → D → C → A:
-   - Cost = 10 + 25 + 30 + 15 = 80 ← Minimum
-3. Through C → B → D → A:
-   - Cost = 15 + 35 + 25 + 20 = 95
-4. Through C → D → B → A:
-   - Cost = 15 + 30 + 25 + 10 = 80
-5. Through D → B → C → A:
-   - Cost = 20 + 25 + 35 + 15 = 95
-6. Through D → C → B → A:
-   - Cost = 20 + 30 + 35 + 10 = 95
-
-Final DP Table:
-
-| City | {A,B,C,D} |
-|------|------------|
-| A    | 80         |
-| B    | 80         |
-| C    | 80         |
-| D    | 80         |
-
-### Optimal Path Construction
-1. Start from city A (minimum in final column)
-2. Next city: B (part of minimum path A → B → D → C → A)
-3. Next city: D
-4. Next city: C
-5. Return to A
-
-Final Path: A → B → D → C → A
-Total Distance = 80
-
-### Detailed Example of Path Selection
-
-Let's examine why A → B → D → C → A (cost = 80) is better than A → B → C → D → A (cost = 95):
-
-Path 1: A → B → D → C → A
-1. A to B: 10
-2. B to D: 25
-3. D to C: 30
-4. C to A: 15
-Total: 80
-
-Path 2: A → B → C → D → A
-1. A to B: 10
-2. B to C: 35
-3. C to D: 30
-4. D to A: 20
-Total: 95
-
-The key difference is in the middle segment:
-- Path 1 uses B → D → C (cost: 25 + 30 = 55)
-- Path 2 uses B → C → D (cost: 35 + 30 = 65)
-
-### State Transition Table
-Shows which city to visit next for each state:
-
-| Current | Remaining Cities | Next City |
-|---------|-----------------|-----------|
-| A       | {B,C,D}        | B         |
-| B       | {C,D}          | D         |
-| D       | {C}            | C         |
-| C       | {}             | A         |
-
-### Problem Variations
-
-1. **Asymmetric TSP**
-   - Different costs for A→B and B→A
-   - Current example is symmetric
-
-2. **Multiple Traveling Salesmen**
-   - k salesmen divide cities among themselves
-   - Each salesman returns to depot
-
-3. **TSP with Time Windows**
-   - Cities must be visited within specific time slots
-   - Adds temporal constraints
-
-### Implementation Tips
-
-1. **Bit Manipulation**
-   For subset S = {A,B,C}:
-   ```
-   Binary: 0111
-   A: 2^0 = 1
-   B: 2^1 = 2
-   C: 2^2 = 4
-   Total: 7
-   ```
-
-2. **Memory Optimization**
-   ```python
-   # Instead of dp[n][2^n]
-   dp = {}  # Use dictionary for sparse storage
-   def key(city, subset):
-       return (city, frozenset(subset))
-   ```
-
-3. **Path Recovery**
-   ```python
-   parent = {}  # Store predecessor for each state
-   def recover_path(city, subset):
-       if not subset:
-           return [city]
-       next_city = parent[city, frozenset(subset)]
-       return [city] + recover_path(next_city, subset - {next_city})
-   ```
-
-### Tree Visualization of TSP Solution
-For our 4-city example (A, B, C, D), let's visualize the decision tree starting from city A:
-
+### Decision Tree for TSP (Starting from City A)
 ```
-                                   A (Start)
-                    ┌────────────┼────────────┐
-                    B            C            D
-            ┌───────┼───────┐    │            │
-           C        D       C    B            B
-        ┌───┘    ┌──┘    ┌──┘   │            │
-        D        C       D      D            C
-        │        │       │      │            │
-        A        A       A      A            A
+                                                        A (0)
+                            ┌──────────────────────────────┼──────────────────────────────┐
+                            ↓10 [Cost to B = 10]           ↓15                            ↓20
+                            B (10)                         C (15)                         D (20)
+                ┌───────────┼─────────────────┐   ┌───────┼─────────────┐        ┌───────┼─────────────┐   
+                ↓35         ↓25               ↓35 ↓10      ↓30          ↓35      ↓25      ↓30          ↓25
+[First Branch]  C (45)      D (35)            C   B (25)   D (45)       B (50)   B (45)   C (50)       B (45)
+Cost: A→B = 10  │           │                 │   │         │            │        │         │            │
+      B→C = 35  ↓30         ↓30               ↓30 ↓25       ↓25          ↓25     ↓35       ↓35          ↓35
+Total = 45      D (75)      C (65)            D   D (50)    B (70)       D (75)  C (80)   B (85)       C (80)
+                │           │                 │   │         │            │        │         │            │
+Cost: C→D = 30  ↓20         ↓15               ↓20 ↓20       ↓10          ↓20     ↓15       ↓10          ↓15
+Total = 75      A (95)      A (80)            A   A (70)    A (80)       A (95)  A (95)   A (95)       A (95)
+                │           │                 │   │         │            │        │         │            │
+Cost: D→A = 20  └─────────[Path 1]───────────┘   └────────[Path 2]─────┘        └────────[Path 3]─────┘
+Final = 95      [Not Optimal: 95]                 [Optimal: 80]                   [Not Optimal: 95]
 
-Cost of each complete path:
-A→B→C→D→A = 95  [10 + 35 + 30 + 20]
-A→B→D→C→A = 80* [10 + 25 + 30 + 15]  ← Optimal
-A→C→B→D→A = 95  [15 + 35 + 25 + 20]
-A→C→D→B→A = 80* [15 + 30 + 25 + 10]
-A→D→B→C→A = 95  [20 + 25 + 35 + 15]
-A→D→C→B→A = 95  [20 + 30 + 35 + 10]
-```
+Detailed Cost for Path 1 (A→B→C→D→A):
+1. A → B: 10 (Initial edge)
+2. B → C: 35 (Running total = 45)
+3. C → D: 30 (Running total = 75)
+4. D → A: 20 (Final total = 95)
 
-### Level-by-Level Tree Analysis
+[Cost]          [95]        [80]              [95] [70]     [80]         [95]    [95]     [95]         [95]
+[Path]          [1]         [2*]              [3]  [4]      [5*]         [6]     [7]      [8]          [9]
 
-#### Level 1: Starting from A
-```
-                A (Start)
-        ┌───────┼───────┐
-        B       C       D
-```
-- Options: Can go to B (10), C (15), or D (20)
-- Best choice: B (10)
-
-#### Level 2: After First City
-```
-                A
-        ┌───────┼───────┐
-        B       C       D
-    ┌───┼───┐
-    C   D   C
-```
-From B:
-- Can go to C (35) or D (25)
-- Best choice: D (25)
-- Running total: 10 + 25 = 35
-
-#### Level 3: After Second City
-```
-                A
-        ┌───────┼───────┐
-        B       C       D
-    ┌───┼───┐
-    C   D   C
-    │   │   │
-    D   C   D
-```
-From B→D:
-- Only option: C (30)
-- Running total: 10 + 25 + 30 = 65
-
-#### Level 4: Return to Start
-```
-                A
-        ┌───────┼───────┐
-        B       C       D
-    ┌───┼───┐
-    C   D   C
-    │   │   │
-    D   C   D
-    │   │   │
-    A   A   A
-```
-From B→D→C:
-- Must return to A (15)
-- Final total: 10 + 25 + 30 + 15 = 80
-
-### State Space Tree with Costs
-```
-                                A (0)
-                    ┌────────────┼────────────┐
-                 B (10)       C (15)       D (20)
-            ┌───────┼───────┐
-         C (45)  D (35)  C (45)
-        ┌───┘    ┌──┘    ┌──┘
-     D (75)   C (65)  D (70)
-        │        │        │
-     A (95)   A (80)   A (90)
-
-Numbers in parentheses show cumulative cost
-```
-
-### Pruning the Search Tree
-Using dynamic programming, we can avoid exploring redundant paths:
-
-```
-                                A (0)
-                    ┌────────────┼────────────┐
-                 B (10)       C (15)       D (20)
-            ┌───────┼───────┐
-         C (45)  D (35)*  C (45)
-                ┌──┘
-             C (65)
-                │
-             A (80)*
-
-* Marks the optimal path segments
-```
-
-### Subset State Visualization
-For city A with different subsets of remaining cities:
-```
-dp[A][{B}] = 10          dp[A][{C}] = 15          dp[A][{D}] = 20
-     A                        A                         A
-     │                        │                         │
-     B                        C                         D
-
-dp[A][{B,C}] = 45        dp[A][{B,D}] = 35        dp[A][{C,D}] = 45
-     A                        A                         A
-     │                        │                         │
-   ┌─┴─┐                   ┌─┴─┐                    ┌─┴─┐
-   B   C                   B   D                    C   D
-
-dp[A][{B,C,D}] = 80
-         A
-         │
-    ┌────┴────┐
-    B         │
-    │     ┌───┴───┐
-    │     D       C
-    └─────┘
-```
-
-This tree representation helps visualize:
-1. All possible paths
-2. Cost accumulation at each step
-3. How dynamic programming avoids recalculating overlapping subproblems
-4. The optimal path selection process
-
+Legend:
+↓ Edge cost
+(xx) Cumulative cost
+[*] Optimal path
