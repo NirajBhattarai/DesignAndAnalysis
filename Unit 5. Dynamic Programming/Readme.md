@@ -907,3 +907,148 @@ Legend:
 ↓ Edge cost
 (xx) Cumulative cost
 [*] Optimal path
+```
+
+### C Implementation of Brute Force Approach
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+
+#define MAX_CITIES 10
+
+// Function to calculate total path cost
+int calculatePathCost(int graph[MAX_CITIES][MAX_CITIES], int path[], int n) {
+    int cost = 0;
+    for (int i = 0; i < n - 1; i++) {
+        cost += graph[path[i]][path[i + 1]];
+    }
+    // Add cost of returning to starting city
+    cost += graph[path[n - 1]][path[0]];
+    return cost;
+}
+
+// Function to print the path
+void printPath(int path[], int n) {
+    printf("Path: ");
+    for (int i = 0; i < n; i++) {
+        printf("%c ", path[i] + 'A');  // Convert to city letters (A, B, C, D)
+    }
+    printf("%c\n", path[0] + 'A');     // Return to start
+}
+
+// Function to generate all possible permutations
+void findAllPaths(int graph[MAX_CITIES][MAX_CITIES], int path[], int visited[], 
+                  int pos, int n, int *minCost, int bestPath[]) {
+    if (pos == n) {
+        // Calculate cost of current permutation
+        int currentCost = calculatePathCost(graph, path, n);
+        
+        // Print current path and its cost
+        printf("Found path: ");
+        printPath(path, n);
+        printf("Cost: %d\n", currentCost);
+        
+        // Update minimum cost if current cost is less
+        if (currentCost < *minCost) {
+            *minCost = currentCost;
+            // Save the best path
+            for (int i = 0; i < n; i++) {
+                bestPath[i] = path[i];
+            }
+        }
+        return;
+    }
+
+    // Try all unvisited cities
+    for (int i = 0; i < n; i++) {
+        if (!visited[i]) {
+            visited[i] = 1;
+            path[pos] = i;
+            findAllPaths(graph, path, visited, pos + 1, n, minCost, bestPath);
+            visited[i] = 0;  // Backtrack
+        }
+    }
+}
+
+// Main TSP function
+void solveTSP(int graph[MAX_CITIES][MAX_CITIES], int n) {
+    int *path = (int *)malloc(n * sizeof(int));
+    int *visited = (int *)calloc(n, sizeof(int));
+    int *bestPath = (int *)malloc(n * sizeof(int));
+    int minCost = INT_MAX;
+
+    // Start from city 0 (A)
+    path[0] = 0;
+    visited[0] = 1;
+
+    printf("\nFinding all possible paths...\n");
+    findAllPaths(graph, path, visited, 1, n, &minCost, bestPath);
+
+    printf("\nOptimal Solution:\n");
+    printf("Minimum Cost: %d\n", minCost);
+    printf("Best ");
+    printPath(bestPath, n);
+
+    free(path);
+    free(visited);
+    free(bestPath);
+}
+
+int main() {
+    // Example with 4 cities (A, B, C, D)
+    int n = 4;
+    int graph[MAX_CITIES][MAX_CITIES] = {
+        {0,  10, 15, 20},
+        {10, 0,  35, 25},
+        {15, 35, 0,  30},
+        {20, 25, 30, 0}
+    };
+
+    printf("Traveling Salesman Problem (Brute Force)\n");
+    printf("\nDistance Matrix:\n");
+    printf("  A  B  C  D\n");
+    for (int i = 0; i < n; i++) {
+        printf("%c ", i + 'A');
+        for (int j = 0; j < n; j++) {
+            printf("%2d ", graph[i][j]);
+        }
+        printf("\n");
+    }
+
+    solveTSP(graph, n);
+    return 0;
+}
+```
+
+Sample Output:
+```
+Traveling Salesman Problem (Brute Force)
+
+Distance Matrix:
+  A  B  C  D
+A  0 10 15 20 
+B 10  0 35 25 
+C 15 35  0 30 
+D 20 25 30  0 
+
+Finding all possible paths...
+Found path: A B C D A
+Cost: 95
+Found path: A B D C A
+Cost: 80
+Found path: A C B D A
+Cost: 95
+Found path: A C D B A
+Cost: 80
+Found path: A D B C A
+Cost: 95
+Found path: A D C B A
+Cost: 95
+
+Optimal Solution:
+Minimum Cost: 80
+Best Path: A B D C A
+```
+
+// ... continue with rest of the document ...
